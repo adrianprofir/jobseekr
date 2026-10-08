@@ -1,0 +1,9 @@
+<li class="reminder reminder-{{ reminder.kind }}">
+  <span class="reminder-what">
+    <a href="{{ reminder.application.get_absolute_url }}">{{ reminder.application.role_title }}</a>
+    <span class="muted">at {{ reminder.application.company.name }}</span>
+    {% if show_status %}{% include "tracker/includes/status_badge.html" with status=reminder.application.status label=reminder.application.get_status_display %}{% endif %}
+    <small class="reminder-reason{% if reminder.needs_attention %} warn{% endif %}">{{ reminder.reason }}</small>
+  </span>
+  {% include "tracker/includes/reminder_actions.html" %}
+</li>

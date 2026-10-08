@@ -1,0 +1,62 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>{% block title %}jobseekr{% endblock %} · jobseekr</title>
+  <link rel="stylesheet" href="{% static 'vendor/pico/pico.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+  {% if main_site or sandbox %}
+  <div class="site-strip">
+    <div class="container">
+      {% if main_site %}<a class="main-site-link" href="{{ main_site.url }}" aria-label="Back to {{ main_site.name }}"><span aria-hidden="true">&larr;</span> {{ main_site.name }}</a>{% endif %}
+      {% if sandbox %}<span class="demo-status">Demo workspace, deleted {{ sandbox_remaining }}</span>{% endif %}
+    </div>
+  </div>
+  {% endif %}
+  {% if user.is_authenticated %}
+  <header class="site">
+    <nav class="container">
+      <ul>
+        <li><a class="brand" href="{% url 'application-list' %}">jobseekr</a></li>
+      </ul>
+      {% with section=request.resolver_match.url_name|default:"" %}
+      <ul>
+        <li><a href="{% url 'application-list' %}"{% if section|slice:":11" == "application" %} aria-current="page"{% endif %}>Applications</a></li>
+        {% with count=follow_up_count %}
+        <li><a href="{% url 'follow-up-list' %}"{% if section|slice:":9" == "follow-up" %} aria-current="page"{% endif %}>Follow-ups{% if count %} <span class="nav-count" aria-label="{{ count }} need attention">{{ count }}</span>{% endif %}</a></li>
+        {% endwith %}
+        <li><a href="{% url 'weekly-summary' %}"{% if section == "weekly-summary" %} aria-current="page"{% endif %}>Summary</a></li>
+        <li><a href="{% url 'company-list' %}"{% if section|slice:":7" == "company" %} aria-current="page"{% endif %}>Companies</a></li>
+        <li><a href="{% url 'document-list' %}"{% if section|slice:":8" == "document" %} aria-current="page"{% endif %}>Documents</a></li>
+        <li>
+          {% if sandbox %}
+          <form method="post" action="{% url 'demo-leave' %}">
+            {% csrf_token %}
+            <button type="submit" class="secondary outline logout" title="Signs you out and deletes this demo workspace">Leave the demo</button>
+          </form>
+          {% else %}
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="secondary outline logout">Log out</button>
+          </form>
+          {% endif %}
+        </li>
+      </ul>
+      {% endwith %}
+    </nav>
+  </header>
+  {% endif %}
+  <main class="container">
+    {% if messages %}
+    <div class="messages" role="status">
+      {% for message in messages %}<p class="{{ message.tags }}">{{ message }}</p>{% endfor %}
+    </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

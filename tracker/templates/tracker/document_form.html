@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Upload document{% endblock %}
+{% block content %}
+<p><a href="{% url 'document-list' %}">&larr; All documents</a></p>
+<div class="page-head">
+  <div>
+    <h1>Upload document</h1>
+    {% if uploads_enabled %}<p class="subtitle">Upload a CV or cover letter now and pick it when you record an application.</p>{% endif %}
+  </div>
+</div>
+{% if not uploads_enabled %}
+<article class="uploads-off" role="status">
+  <p><strong>Uploads are switched off {% if demo_mode %}in this demo{% else %}on this server{% endif %}.</strong></p>
+  {% if demo_mode %}
+  <p>This is a public demo, and a CV is personal data. So that nobody's real CV ends up on this server, the demo accepts no files.</p>
+  <p>The sample CVs and cover letter in your workspace are there to try everything else: pick them on an application, open them, or download them. On your own copy of jobseekr you upload the exact PDF or DOCX you sent, and every application keeps pointing at that file.</p>
+  {% else %}
+  <p>The administrator has switched document uploads off. Documents already stored can still be opened and downloaded.</p>
+  {% endif %}
+  <p><a role="button" class="secondary" href="{% url 'document-list' %}">Back to documents</a></p>
+</article>
+{% else %}
+<form method="post" enctype="multipart/form-data" novalidate>
+  {% csrf_token %}
+  {% include "tracker/includes/field.html" with field=form.kind %}
+  {% include "tracker/includes/field.html" with field=form.file %}
+  {% include "tracker/includes/field.html" with field=form.label %}
+  <div class="actions">
+    <button type="submit">Upload</button>
+    <a role="button" class="secondary outline" href="{% url 'document-list' %}">Cancel</a>
+  </div>
+</form>
+{% endif %}
+{% endblock %}

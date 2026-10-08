@@ -1,0 +1,900 @@
+/* Site styles layered on top of Pico CSS. Keep this small and consistent. */
+
+:root {
+  --jt-status-wishlist: #6b7280;
+  --jt-status-applied: #2563eb;
+  --jt-status-interviewing: #7c3aed;
+  --jt-status-offer: #15803d;
+  --jt-status-rejected: #b91c1c;
+  --jt-status-withdrawn: #78716c;
+  --jt-status-no_response: #a16207;
+  --jt-warn-bg: #fef3c7;
+  --jt-warn-fg: #92400e;
+  --jt-warn-border: #f59e0b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --jt-status-wishlist: #9ca3af;
+    --jt-status-applied: #60a5fa;
+    --jt-status-interviewing: #a78bfa;
+    --jt-status-offer: #4ade80;
+    --jt-status-rejected: #f87171;
+    --jt-status-withdrawn: #a8a29e;
+    --jt-status-no_response: #facc15;
+    --jt-warn-bg: #3b2a07;
+    --jt-warn-fg: #fcd34d;
+    --jt-warn-border: #b45309;
+  }
+}
+
+:root {
+  /* Pico scales the root font size up on wide screens; a tracker is dense
+     tabular data, so keep one comfortable size everywhere. */
+  --pico-font-size: 100%;
+}
+
+body > header.site {
+  border-bottom: 1px solid var(--pico-muted-border-color);
+  margin-bottom: 1.5rem;
+}
+
+body > header.site nav {
+  padding-block: 0.25rem;
+}
+
+.brand {
+  font-weight: 700;
+  color: var(--pico-color);
+  text-decoration: none;
+}
+
+nav a[aria-current="page"] {
+  font-weight: 600;
+  color: var(--pico-primary);
+}
+
+nav form {
+  margin: 0;
+}
+
+nav form button.logout {
+  margin: 0;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+/* Wrap the navigation between items, never inside an item such as "Log out". */
+.brand,
+body > header.site nav a,
+nav form button.logout {
+  white-space: nowrap;
+}
+
+main.container {
+  padding-top: 0;
+}
+
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.page-head h1 {
+  margin: 0;
+}
+
+.page-head .subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--pico-muted-color);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.actions > *,
+.actions > button[type="submit"] {
+  margin: 0;
+  width: auto;
+}
+
+a[role="button"].small,
+button.small {
+  padding: 0.35rem 0.8rem;
+  font-size: 0.9rem;
+}
+
+.muted {
+  color: var(--pico-muted-color);
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+/* Status badges */
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+  color: var(--jt-status, var(--pico-muted-color));
+  border: 1px solid currentColor;
+}
+
+.status-wishlist { --jt-status: var(--jt-status-wishlist); }
+.status-applied { --jt-status: var(--jt-status-applied); }
+.status-interviewing { --jt-status: var(--jt-status-interviewing); }
+.status-offer { --jt-status: var(--jt-status-offer); }
+.status-rejected { --jt-status: var(--jt-status-rejected); }
+.status-withdrawn { --jt-status: var(--jt-status-withdrawn); }
+.status-no_response { --jt-status: var(--jt-status-no_response); }
+
+.warn {
+  color: var(--jt-warn-fg);
+  font-weight: 600;
+}
+
+/* Needs attention panel */
+.attention {
+  border-left: 4px solid var(--jt-warn-border);
+  background: var(--jt-warn-bg);
+  padding: 1rem 1.25rem;
+}
+
+.attention h2 {
+  font-size: 1.05rem;
+  margin-bottom: 0.5rem;
+  color: var(--jt-warn-fg);
+}
+
+.attention-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.25rem 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.attention-head h2 {
+  margin: 0;
+}
+
+.attention-head a {
+  font-size: 0.875rem;
+  color: var(--jt-warn-fg);
+}
+
+/* Reminders with Done and Snooze actions */
+ul.reminders {
+  margin: 0;
+  padding: 0;
+}
+
+ul.reminders li.reminder {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.4rem 1rem;
+  padding: 0.45rem 0;
+  border-top: 1px solid var(--pico-muted-border-color);
+}
+
+.attention ul.reminders li.reminder {
+  border-top-color: color-mix(in srgb, var(--jt-warn-border) 30%, transparent);
+}
+
+ul.reminders li.reminder:first-child {
+  border-top: 0;
+}
+
+.reminder-what {
+  min-width: 0;
+  flex: 1 1 16rem;
+}
+
+.reminder-what a {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.reminder-what a:hover {
+  text-decoration: underline;
+}
+
+.reminder-what .badge {
+  margin-left: 0.25rem;
+}
+
+.reminder-reason {
+  display: block;
+  font-size: 0.85rem;
+}
+
+.reminder-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.reminder-actions form {
+  display: flex;
+  gap: 0.3rem;
+  align-items: center;
+  margin: 0;
+}
+
+.reminder-actions button,
+.reminder-actions select {
+  margin: 0;
+  width: auto;
+}
+
+.reminder-actions select {
+  padding: 0.3rem 2rem 0.3rem 0.6rem;
+  font-size: 0.875rem;
+  height: auto;
+  background-position: center right 0.5rem;
+}
+
+.reminder-section {
+  margin-bottom: 2rem;
+}
+
+.reminder-section h2 {
+  font-size: 1.15rem;
+  margin-bottom: 0.25rem;
+}
+
+.reminder-section h2 .count,
+.nav-count {
+  display: inline-block;
+  min-width: 1.4rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.4rem;
+  text-align: center;
+  vertical-align: middle;
+  font-variant-numeric: tabular-nums;
+}
+
+.reminder-section h2 .count {
+  background: var(--pico-muted-border-color);
+  color: var(--pico-color);
+}
+
+.nav-count {
+  background: var(--jt-warn-border);
+  color: #fff;
+  margin-left: 0.15rem;
+}
+
+.reminder-section-overdue h2,
+.reminder-section-today h2 {
+  color: var(--jt-warn-fg);
+}
+
+/* Quick add */
+.quick-add {
+  margin-bottom: 1.25rem;
+}
+
+.quick-add [role="group"] {
+  margin: 0;
+}
+
+/* CAPTURE_MODE=samples: the sample links under the quick add box. */
+.sample-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.5rem;
+  margin: -0.5rem 0 1.25rem;
+  font-size: 0.9rem;
+}
+
+.chip {
+  display: inline-block;
+  padding: 0.1rem 0.65rem;
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: 999px;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.chip:hover,
+.chip:focus-visible {
+  border-color: var(--pico-primary);
+}
+
+/* Filters */
+.status-filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.status-filters a {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  padding: 0.2rem 0.7rem;
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: 999px;
+  font-size: 0.875rem;
+  text-decoration: none;
+  color: var(--pico-color);
+}
+
+.status-filters a:hover {
+  border-color: var(--pico-primary);
+}
+
+.status-filters a[aria-current="true"] {
+  background: var(--pico-primary-background);
+  border-color: var(--pico-primary-background);
+  color: var(--pico-primary-inverse);
+}
+
+.status-filters .count {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}
+
+.filter-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0.5rem;
+  align-items: start;
+  margin-bottom: 1rem;
+}
+
+.filter-bar > * {
+  margin: 0;
+}
+
+/* Pico draws search inputs as pills; match the square select and button. */
+.filter-bar input[type="search"] {
+  border-radius: 0.25rem;
+}
+
+@media (max-width: 640px) {
+  .filter-bar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Tables */
+table td,
+table th {
+  vertical-align: top;
+}
+
+table .primary-cell a,
+.attention a {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+table .primary-cell a:hover,
+.attention a:hover {
+  text-decoration: underline;
+}
+
+table .primary-cell small {
+  display: block;
+  color: var(--pico-muted-color);
+}
+
+tr.closed td {
+  opacity: 0.65;
+}
+
+.doc-tags {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.doc-tag {
+  font-size: 0.75rem;
+  padding: 0 0.4rem;
+  border-radius: 0.25rem;
+  background: var(--pico-muted-border-color);
+  color: var(--pico-color);
+  text-decoration: none;
+}
+
+.empty {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--pico-muted-color);
+}
+
+/* Detail page */
+.detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.detail-grid article {
+  margin-bottom: 1.5rem;
+}
+
+dl.facts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 0.4rem 1.25rem;
+  margin: 0;
+}
+
+dl.facts dt {
+  color: var(--pico-muted-color);
+  font-weight: 400;
+}
+
+dl.facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.doc-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--pico-muted-border-color);
+}
+
+.doc-row:first-of-type {
+  border-top: 0;
+}
+
+.doc-row .doc-meta {
+  min-width: 0;
+}
+
+.doc-row .doc-meta small {
+  display: block;
+  color: var(--pico-muted-color);
+  overflow-wrap: anywhere;
+}
+
+.notes {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.timeline {
+  margin: 0;
+  padding: 0;
+}
+
+.timeline li {
+  list-style: none;
+  padding: 0.6rem 0 0.6rem 1rem;
+  border-left: 2px solid var(--pico-muted-border-color);
+  position: relative;
+}
+
+.timeline li::before {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: 0.95rem;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--pico-muted-border-color);
+}
+
+.timeline li.event-status::before {
+  background: var(--pico-primary);
+}
+
+.timeline time {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--pico-muted-color);
+}
+
+.timeline .message {
+  margin: 0.15rem 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Forms */
+.form-section {
+  margin-bottom: 1.5rem;
+}
+
+fieldset.form-section > legend {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 1rem;
+}
+
+.field-grid .span-2 {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 640px) {
+  .field-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.field small.error {
+  color: var(--pico-del-color);
+}
+
+.errorlist {
+  color: var(--pico-del-color);
+  padding: 0;
+}
+
+.errorlist li {
+  list-style: none;
+}
+
+/* Fetch details next to the posting URL */
+.url-fetch button {
+  white-space: nowrap;
+}
+
+.capture-notice {
+  border-left: 4px solid var(--jt-status-offer);
+  padding: 0.85rem 1.25rem;
+}
+
+.capture-notice.capture-failed {
+  border-left-color: var(--jt-warn-border);
+  background: var(--jt-warn-bg);
+}
+
+.capture-notice p {
+  margin: 0;
+}
+
+.capture-notice p + p {
+  margin-top: 0.4rem;
+}
+
+.posting-copy summary {
+  color: var(--pico-primary);
+}
+
+.posting-copy .notes {
+  max-height: 32rem;
+  overflow-y: auto;
+  padding-top: 0.5rem;
+}
+
+/* Weekly summary */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: var(--pico-border-radius);
+  background: var(--pico-card-background-color);
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: var(--pico-muted-color);
+}
+
+.stat-warn {
+  border-color: var(--jt-warn-border);
+  background: var(--jt-warn-bg);
+}
+
+.stat-warn .stat-value {
+  color: var(--jt-warn-fg);
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.summary-grid article {
+  margin: 0 0 1rem;
+}
+
+.summary-grid ul.reminders li.reminder {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.summary-grid .reminder-what {
+  flex-basis: auto;
+}
+
+.plain-list {
+  margin: 0;
+  padding: 0;
+}
+
+.plain-list li {
+  list-style: none;
+  padding: 0.35rem 0;
+  border-top: 1px solid var(--pico-muted-border-color);
+  overflow-wrap: anywhere;
+}
+
+.plain-list li:first-child {
+  border-top: 0;
+}
+
+.plain-list a {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.plain-list small {
+  display: block;
+}
+
+.section-title {
+  font-size: 1.15rem;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.section-title small {
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.week-nav a[role="button"] {
+  white-space: nowrap;
+}
+
+.email-note {
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 1000px) {
+  .summary-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .stat-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.compact-form label,
+.compact-form input,
+.compact-form select,
+.compact-form textarea {
+  margin-bottom: 0.5rem;
+}
+
+.messages {
+  margin-bottom: 1rem;
+}
+
+.messages p {
+  margin: 0 0 0.5rem;
+  padding: 0.6rem 1rem;
+  border-radius: var(--pico-border-radius);
+  border: 1px solid var(--pico-muted-border-color);
+}
+
+.messages .success {
+  border-color: var(--jt-status-offer);
+}
+
+.messages .error {
+  border-color: var(--jt-status-rejected);
+}
+
+.danger {
+  --pico-background-color: var(--pico-del-color);
+  --pico-border-color: var(--pico-del-color);
+  --pico-color: #fff;
+}
+
+a.danger-link {
+  color: var(--pico-del-color);
+}
+
+.login-card {
+  max-width: 26rem;
+  margin: 3rem auto;
+}
+
+/* The strip on top: back to MAIN_SITE_URL, and the demo workspace's time left. */
+.site-strip {
+  border-bottom: 1px solid var(--pico-muted-border-color);
+  background: var(--pico-card-sectioning-background-color);
+  font-size: 0.85rem;
+}
+
+.site-strip .container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  padding-block: 0.35rem;
+}
+
+.main-site-link {
+  color: var(--pico-muted-color);
+  text-decoration: none;
+}
+
+.main-site-link:hover,
+.main-site-link:focus-visible {
+  color: var(--pico-primary);
+}
+
+.demo-status {
+  margin-left: auto;
+  color: var(--pico-muted-color);
+}
+
+/* Try the demo */
+.try {
+  max-width: 40rem;
+  margin: 3rem auto;
+}
+
+.try-intro h1 {
+  margin-bottom: 0.75rem;
+}
+
+.try-intro .lead {
+  font-size: 1.15rem;
+}
+
+.try-start button {
+  width: auto;
+  padding-inline: 2rem;
+}
+
+.notice {
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--pico-primary);
+  background: var(--pico-card-sectioning-background-color);
+}
+
+.notice-warn {
+  border-left-color: var(--jt-warn-border);
+  background: var(--jt-warn-bg);
+  color: var(--jt-warn-fg);
+}
+
+.demo-notice h2 {
+  font-size: 1.05rem;
+  margin-bottom: 0.5rem;
+}
+
+.demo-notice ul {
+  margin-bottom: 0;
+  padding-left: 1.1rem;
+}
+
+.demo-notice li {
+  margin-bottom: 0.35rem;
+  color: var(--pico-muted-color);
+}
+
+/* DOCUMENT_UPLOADS_ENABLED=false */
+.uploads-off-note {
+  margin: 0;
+  color: var(--pico-muted-color);
+}
+
+.uploads-off {
+  max-width: 44rem;
+}
+
+/* !important: Pico styles form buttons with more specific selectors. */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  border: 0 !important;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Below 1024px the container is too narrow for the navigation on one row. */
+@media (max-width: 1023px) {
+  /* The gap keeps the brand apart from the links when both only just fit. */
+  body > header.site nav {
+    flex-wrap: wrap;
+    column-gap: 2rem;
+  }
+
+  /* Line the wrapped row up with the brand, as Pico does for the first list. */
+  body > header.site nav ul:last-child {
+    flex-wrap: wrap;
+    margin-left: calc(var(--pico-nav-element-spacing-horizontal) * -1);
+  }
+
+  body > header.site nav li {
+    padding-block: 0.35rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .hide-sm {
+    display: none;
+  }
+}
+
+/* Keep the CV and cover letter tables aligned with each other. */
+.doc-table {
+  table-layout: fixed;
+  min-width: 36rem;
+}
+
+.doc-table th:nth-child(1) { width: 40%; }
+.doc-table th:nth-child(2) { width: 15%; }
+.doc-table th:nth-child(3) { width: 30%; }
+.doc-table th:nth-child(4) { width: 15%; }
+
+.doc-table td {
+  overflow-wrap: anywhere;
+}

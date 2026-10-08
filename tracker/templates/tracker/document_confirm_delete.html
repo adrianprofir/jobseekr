@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Delete {{ document.label }}{% endblock %}
+{% block content %}
+<article>
+  <header><strong>Delete {{ document.label }}?</strong></header>
+  <p>The file <code>{{ document.original_filename }}</code> has not been sent with any application. Deleting it removes the file permanently.</p>
+  <form method="post" class="actions">
+    {% csrf_token %}
+    <button type="submit" class="danger">Delete document</button>
+    <a role="button" class="secondary outline" href="{% url 'document-list' %}">Cancel</a>
+  </form>
+</article>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% autoescape off %}Job search summary, week {{ summary.week_number }} ({{ summary.start|date:"j M" }} - {{ summary.end|date:"j M Y" }})
+
+{% for value, label in stats %}{{ label }}: {{ value }}{% if not forloop.last %} | {% endif %}{% endfor %}
+{% for title, items, empty in sections %}
+{{ title|upper }}
+{% for item in items %}- {{ item.application.role_title }} at {{ item.application.company.name }}{% if item.detail %} ({{ item.detail }}){% endif %}
+{% empty %}{{ empty }}
+{% endfor %}{% endfor %}{% if site_url %}
+Open the summary in the tracker: {{ site_url }}{% url 'weekly-summary' %}?week={{ summary.week }}
+{% endif %}{% endautoescape %}

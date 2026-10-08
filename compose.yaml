@@ -1,0 +1,66 @@
+# Self-hosted deployment: Django (gunicorn) + PostgreSQL.
+# The app is published only on BIND_ADDRESS (127.0.0.1 unless you set it, for
+# example to the server's LAN address); the database is never published.
+# See README.md.
+#
+# `name` sets the volume prefix (jobseekr_postgres-data, jobseekr_documents).
+# A stack that was created under another project name keeps its data by pinning
+# that name with COMPOSE_PROJECT_NAME in .env; see "Upgrading" in README.md.
+name: jobseekr
+
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-jobtracker}
+      POSTGRES_USER: ${POSTGRES_USER:-jobtracker}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web: &app
+    build: .
+    image: jobseekr:latest
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      PRIVATE_MEDIA_ROOT: /data/documents
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - documents:/data/documents
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${WEB_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+
+  # Only for a demo (DEMO_MODE=true): deletes expired demo sandboxes and sessions
+  # every 5 minutes. Start the stack with `docker compose --profile demo up -d`.
+  scheduler:
+    <<: *app
+    profiles: [demo]
+    command: ["/app/docker/scheduler.sh"]
+    init: true
+    ports: []
+    healthcheck:
+      disable: true
+    depends_on:
+      web:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  documents:

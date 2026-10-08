@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}{% if application %}Edit {{ application.role_title }}{% else %}New application{% endif %}{% endblock %}
+{% block content %}
+<p><a href="{% if application %}{{ application.get_absolute_url }}{% else %}{% url 'application-list' %}{% endif %}">&larr; {% if application %}Back to application{% else %}All applications{% endif %}</a></p>
+<div class="page-head">
+  <h1>{% if application %}Edit application{% else %}New application{% endif %}</h1>
+</div>
+
+<form method="post" enctype="multipart/form-data" novalidate>
+  {% csrf_token %}
+  {# Pressing Enter in a field saves the form rather than fetching the posting again. #}
+  <button type="submit" class="visually-hidden" tabindex="-1" aria-hidden="true">Save</button>
+  {% if form.non_field_errors %}<ul class="errorlist" role="alert">{% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+
+  {% if capture %}
+  <article class="capture-notice{% if capture.error %} capture-failed{% endif %}" role="status">
+    {% if capture.error %}
+    <p><strong>Could not fill in the form from the link.</strong> {{ capture.error }}</p>
+    <p>Fill in the details yourself{% if not form.posting_text.value %}, and paste the ad text into "Copy of the job ad" to keep it{% endif %}.</p>
+    {% elif capture.filled %}
+    <p><strong>Filled in from the posting:</strong> {{ capture.filled|join:", " }}. Check the details, then save.</p>
+    {% else %}
+    <p>The posting had nothing to add: every field it covers is already filled in.</p>
+    {% endif %}
+    {% if capture.files_dropped %}<p>Choose the documents to upload again; the browser does not keep selected files.</p>{% endif %}
+    {% if capture.duplicates %}
+    <p class="warn">You already track this posting: {% for other in capture.duplicates %}<a href="{{ other.get_absolute_url }}">{{ other.role_title }} at {{ other.company.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}.</p>
+    {% endif %}
+  </article>
+  {% endif %}
+
+  <fieldset class="form-section">
+    <legend>The job</legend>
+    <div class="field-grid">
+      <div class="field span-2">
+        <label for="{{ form.posting_url.id_for_label }}">{{ form.posting_url.label }}</label>
+        <fieldset role="group" class="url-fetch">
+          {{ form.posting_url }}
+          <button type="submit" name="fetch" value="1" class="secondary" formnovalidate>Fetch details</button>
+        </fieldset>
+        {% for error in form.posting_url.errors %}<small class="error">{{ error }}</small>{% endfor %}
+        {% if not form.posting_url.errors %}<small>Fetch details fills in the empty fields from the posting. Nothing is saved until you save the form.{% if capture_samples %} This demo only fetches its sample postings, listed on the Applications page.{% endif %}</small>{% endif %}
+      </div>
+      {% include "tracker/includes/field.html" with field=form.company_name %}
+      {% include "tracker/includes/field.html" with field=form.role_title %}
+      {% include "tracker/includes/field.html" with field=form.location %}
+      {% include "tracker/includes/field.html" with field=form.work_mode %}
+    </div>
+  </fieldset>
+
+  <fieldset class="form-section">
+    <legend>Progress</legend>
+    <div class="field-grid">
+      {% include "tracker/includes/field.html" with field=form.status %}
+      {% include "tracker/includes/field.html" with field=form.date_applied %}
+      {% include "tracker/includes/field.html" with field=form.next_follow_up %}
+      {% include "tracker/includes/field.html" with field=form.source %}
+    </div>
+  </fieldset>
+
+  <fieldset class="form-section">
+    <legend>Documents sent</legend>
+    {% if uploads_enabled %}
+    <p class="muted">Pick a file you already uploaded, or upload the exact version you sent. Uploading a new file takes priority over the selection.</p>
+    {% else %}
+    <p class="muted">Pick the files you sent from your <a href="{% url 'document-list' %}">documents</a>. Uploads are switched off {% if demo_mode %}in this demo{% else %}on this server{% endif %}.</p>
+    {% endif %}
+    <div class="field-grid">
+      {% include "tracker/includes/field.html" with field=form.cv %}
+      {% include "tracker/includes/field.html" with field=form.cover_letter %}
+      {% if uploads_enabled %}
+      {% include "tracker/includes/field.html" with field=form.new_cv %}
+      {% include "tracker/includes/field.html" with field=form.new_cover_letter %}
+      {% include "tracker/includes/field.html" with field=form.new_cv_label %}
+      {% include "tracker/includes/field.html" with field=form.new_cover_letter_label %}
+      {% endif %}
+    </div>
+  </fieldset>
+
+  <fieldset class="form-section">
+    <legend>Contact and pay</legend>
+    <div class="field-grid">
+      {% include "tracker/includes/field.html" with field=form.contact_name %}
+      {% include "tracker/includes/field.html" with field=form.contact_email %}
+      {% include "tracker/includes/field.html" with field=form.salary span=True %}
+    </div>
+  </fieldset>
+
+  <div class="form-section">
+    {% include "tracker/includes/field.html" with field=form.notes %}
+  </div>
+
+  <div class="form-section">
+    {% include "tracker/includes/field.html" with field=form.posting_text %}
+  </div>
+
+  <datalist id="company-options">{% for name in companies %}<option value="{{ name }}">{% endfor %}</datalist>
+  <datalist id="source-options">{% for name in sources %}<option value="{{ name }}">{% endfor %}</datalist>
+
+  <div class="actions">
+    <button type="submit">{% if application %}Save changes{% else %}Save application{% endif %}</button>
+    <a role="button" class="secondary outline" href="{% if application %}{{ application.get_absolute_url }}{% else %}{% url 'application-list' %}{% endif %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Log in{% endblock %}
+{% block content %}
+<article class="login-card">
+  <header><h1 style="margin:0">jobseekr</h1></header>
+  <form method="post" action="{% url 'login' %}">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+    <p class="warn" role="alert">Your username and password did not match. Please try again.</p>
+    {% endif %}
+    <label for="{{ form.username.id_for_label }}">Username</label>
+    {{ form.username }}
+    <label for="{{ form.password.id_for_label }}">Password</label>
+    {{ form.password }}
+    <input type="hidden" name="next" value="{{ next }}">
+    <button type="submit">Log in</button>
+  </form>
+  {% if demo_mode %}<footer><a href="{% url 'demo-try' %}">Try the demo instead</a>, no account needed.</footer>{% endif %}
+</article>
+{% endblock %}

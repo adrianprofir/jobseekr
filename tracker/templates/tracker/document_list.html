@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Documents{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Documents</h1>
+    <p class="subtitle">Every CV and cover letter you uploaded, and which applications each was sent with.</p>
+  </div>
+  {% if uploads_enabled %}
+  <div class="actions"><a role="button" href="{% url 'document-upload' %}">Upload document</a></div>
+  {% else %}
+  <p class="uploads-off-note">Uploads are off {% if demo_mode %}in this demo{% else %}on this server{% endif %}. <a href="{% url 'document-upload' %}">Why?</a></p>
+  {% endif %}
+</div>
+
+{% for kind, title, documents in sections %}
+<section>
+  <h2>{{ title }}</h2>
+  {% if documents %}
+  <div class="overflow-auto">
+  <table class="striped doc-table">
+    <thead><tr><th scope="col">Name</th><th scope="col">Uploaded</th><th scope="col">Sent with</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr></thead>
+    <tbody>
+      {% for document, used_in in documents %}
+      <tr>
+        <td class="primary-cell">
+          <a href="{{ document.get_absolute_url }}"{% if document.extension == "pdf" %} target="_blank" rel="noopener"{% endif %}>{{ document.label }}</a>
+          <small>{{ document.original_filename }} · {{ document.size|filesizeformat }}</small>
+        </td>
+        <td class="nowrap">{{ document.uploaded_at|date:"j M Y" }}</td>
+        <td>
+          {% for application in used_in %}
+          <a href="{{ application.get_absolute_url }}" title="{{ application.role_title }}">{{ application.company.name }}</a>{% if not forloop.last %}, {% endif %}
+          {% empty %}<span class="muted">Not sent yet</span>{% endfor %}
+        </td>
+        <td class="nowrap">
+          <a href="{{ document.get_absolute_url }}?download=1">Download</a>
+          {% if not used_in %} · <a class="danger-link" href="{% url 'document-delete' document.pk %}">Delete</a>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <p class="muted">No {{ title|lower }} yet.{% if uploads_enabled %} <a href="{% url 'document-upload' %}?kind={{ kind }}">Upload one</a>.{% endif %}</p>
+  {% endif %}
+</section>
+{% endfor %}
+{% endblock %}

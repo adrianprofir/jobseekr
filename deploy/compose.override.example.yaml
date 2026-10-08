@@ -1,0 +1,19 @@
+# Optional addition to compose.yaml for a server that is also on a tailnet. Copy to compose.override.yaml next to compose.yaml
+# (Compose loads it automatically and it is git-ignored) and set TAILSCALE_ADDRESS in .env.
+#
+# tailscale: publishes the app on the Tailscale address as well as the LAN address.
+#   It is a separate host-network forwarder instead of a second port binding on `web`,
+#   because Docker does not wait for tailscaled at boot: a failed bind on the Tailscale
+#   address would stop `web` from starting at all, LAN included. socat exits until the
+#   address exists and the restart policy retries it, so the LAN listener never depends
+#   on Tailscale.
+services:
+  tailscale:
+    image: alpine/socat:1.8.0.3
+    restart: unless-stopped
+    network_mode: host
+    command:
+      - TCP-LISTEN:${WEB_PORT:-8000},bind=${TAILSCALE_ADDRESS:?set TAILSCALE_ADDRESS in .env},fork,reuseaddr,backlog=128
+      - TCP:${BIND_ADDRESS:?set BIND_ADDRESS in .env}:${WEB_PORT:-8000}
+    depends_on:
+      - web

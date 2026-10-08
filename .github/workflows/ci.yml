@@ -1,0 +1,124 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: jobtracker
+          POSTGRES_USER: jobtracker
+          POSTGRES_PASSWORD: jobtracker
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U jobtracker"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DJANGO_SECRET_KEY: ci-only-secret-key
+      POSTGRES_DB: jobtracker
+      POSTGRES_USER: jobtracker
+      POSTGRES_PASSWORD: jobtracker
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.14"
+          enable-cache: true
+      - run: uv sync --frozen
+      - name: Lint
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+      - name: Django checks
+        run: |
+          uv run python manage.py check
+          uv run python manage.py makemigrations --check --dry-run
+      - name: Tests
+        run: uv run pytest
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate Compose file
+        run: |
+          cp .env.example .env
+          docker compose config --quiet
+          docker compose --profile demo config --quiet
+      - name: Build and start the stack
+        run: docker compose up --build --detach --wait --wait-timeout 180
+      - name: Smoke test
+        run: |
+          curl --fail --silent --show-error http://127.0.0.1:8000/healthz | grep -q ok
+          curl --fail --silent --show-error http://127.0.0.1:8000/login/ | grep -q "Log in"
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:8000/)" = 302
+          docker compose exec -T web python manage.py check
+      - name: Show logs
+        if: failure()
+        run: docker compose logs
+
+  demo-stack:
+    runs-on: ubuntu-latest
+    env:
+      DEMO_EDGE_NETWORK: ci-edge
+    defaults:
+      run:
+        working-directory: deploy/demo
+    steps:
+      - uses: actions/checkout@v7
+      - name: Configure the demo stack
+        run: |
+          cp .env.demo.example .env
+          sed -i "s/^DJANGO_SECRET_KEY=.*/DJANGO_SECRET_KEY=ci-only-not-secret-ci-only-not-secret/;s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=ci-only-not-secret/;s/^DEMO_EDGE_NETWORK=.*/DEMO_EDGE_NETWORK=$DEMO_EDGE_NETWORK/" .env
+          docker compose config --quiet
+      - name: Check the example holds the demo settings and no mail settings
+        run: |
+          grep -qx 'DEMO_MODE=true' .env.demo.example
+          grep -qx 'CAPTURE_MODE=samples' .env.demo.example
+          grep -qx 'DOCUMENT_UPLOADS_ENABLED=false' .env.demo.example
+          grep -qx 'CLIENT_IP_HEADER=CF-Connecting-IP' .env.demo.example
+          ! grep -E '^ *#? *(EMAIL_|DEFAULT_FROM_EMAIL)' .env.demo.example
+      - run: docker network create "$DEMO_EDGE_NETWORK"
+      - name: Start a decoy answering to web on the edge network
+        # In production other stacks share the edge network, and their web containers
+        # answer to the name web there. The demo must still be reached by its own alias.
+        run: >-
+          docker run -d --name decoy-web --network "$DEMO_EDGE_NETWORK" --network-alias web
+          caddy:2-alpine caddy respond --listen :8000 --status 400 --body "decoy web on the edge network"
+      - name: Start the demo stack
+        run: docker compose up -d --build --wait --wait-timeout 300
+      - name: Alias routes to jobseekr, not the decoy, and the internal network has no route out
+        run: ./smoke-test.sh
+      - name: Show logs
+        if: failure()
+        run: docker compose logs
+      - name: Stop
+        if: always()
+        run: |
+          docker compose down -v
+          docker rm -f decoy-web
+
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Scan the history for secrets
+        run: |
+          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/repo" -w /repo \
+            ghcr.io/gitleaks/gitleaks:v8.21.2 git --no-banner --redact --verbose .

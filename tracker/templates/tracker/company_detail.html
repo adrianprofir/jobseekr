@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}{{ company.name }}{% endblock %}
+{% block content %}
+<p><a href="{% url 'company-list' %}">&larr; All companies</a></p>
+<div class="page-head">
+  <div>
+    <h1>{{ company.name }}</h1>
+    {% if company.website %}<p class="subtitle"><a href="{{ company.website }}" target="_blank" rel="noopener noreferrer">{{ company.website }}</a></p>{% endif %}
+  </div>
+  <div class="actions">
+    <a role="button" class="secondary outline" href="{% url 'company-edit' company.pk %}">Edit</a>
+    <a role="button" href="{% url 'application-create' %}?company={{ company.pk }}">New application here</a>
+  </div>
+</div>
+{% if company.notes %}<article><div class="notes">{{ company.notes }}</div></article>{% endif %}
+
+<h2>Applications</h2>
+{% if applications %}
+<div class="overflow-auto">
+<table class="striped">
+  <thead><tr><th scope="col">Role</th><th scope="col">Status</th><th scope="col">Applied</th></tr></thead>
+  <tbody>
+    {% for application in applications %}
+    <tr{% if application.is_closed %} class="closed"{% endif %}>
+      <td class="primary-cell"><a href="{{ application.get_absolute_url }}">{{ application.role_title }}</a></td>
+      <td>{% include "tracker/includes/status_badge.html" with status=application.status label=application.get_status_display %}</td>
+      <td class="nowrap">{{ application.date_applied|date:"j M Y"|default:"-" }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p class="muted">No applications for this company. <a href="{% url 'company-delete' company.pk %}" class="danger-link">Delete company</a></p>
+{% endif %}
+{% endblock %}

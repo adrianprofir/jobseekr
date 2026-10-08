@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Follow-ups{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Follow-ups</h1>
+    <p class="subtitle">Mark a follow-up done once you have chased it, or snooze it to a later day.</p>
+  </div>
+</div>
+
+{% if has_any %}
+{% for key, title, reminders in sections %}
+{% if reminders %}
+<section class="reminder-section reminder-section-{{ key }}" aria-labelledby="section-{{ key }}">
+  <h2 id="section-{{ key }}">{{ title }} <span class="count">{{ reminders|length }}</span></h2>
+  {% if key == "quiet" %}<p class="muted">Waiting on the employer with nothing logged for {{ stale_after_days }} days or more.</p>{% endif %}
+  <ul class="reminders">
+    {% for reminder in reminders %}
+    {% include "tracker/includes/reminder_row.html" with show_status=True %}
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% endfor %}
+{% else %}
+<article class="empty">
+  <p><strong>Nothing to follow up.</strong></p>
+  <p>Set a next follow-up date on an application and it shows up here when it is due.</p>
+</article>
+{% endif %}
+{% endblock %}

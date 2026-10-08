@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Applications{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Applications</h1>
+  <div class="actions">
+    <a role="button" href="{% url 'application-create' %}">New application</a>
+  </div>
+</div>
+
+<form class="quick-add" method="get" action="{% url 'application-create' %}">
+  <fieldset role="group">
+    <input type="url" name="url" placeholder="Paste a job posting URL" aria-label="Job posting URL" required>
+    <button type="submit" class="secondary">Add</button>
+  </fieldset>
+</form>
+{% if capture_samples %}
+<p class="sample-links">
+  <span class="muted">This demo only captures sample postings. Try one:</span>
+  {% for sample in capture_samples %}<a class="chip" href="{% url 'application-create' %}?url={{ sample.url|urlencode }}" title="{{ sample.description }}">{{ sample.board }}{% if sample.blocked %} (blocked){% endif %}</a>{% endfor %}
+</p>
+{% endif %}
+
+{% if attention %}
+<article class="attention" aria-labelledby="attention-title">
+  <div class="attention-head">
+    <h2 id="attention-title">Needs attention ({{ attention|length }})</h2>
+    <a href="{% url 'follow-up-list' %}">All follow-ups &rarr;</a>
+  </div>
+  <ul class="reminders">
+    {% for reminder in attention %}
+    {% include "tracker/includes/reminder_row.html" %}
+    {% endfor %}
+  </ul>
+</article>
+{% endif %}
+
+{% if has_any %}
+<nav class="status-filters" aria-label="Filter by status">
+  {% for value, label, count in status_filters %}
+  <a href="?{% if value %}status={{ value }}&amp;{% endif %}{% if query %}q={{ query|urlencode }}&amp;{% endif %}sort={{ sort }}"{% if value == status %} aria-current="true"{% endif %}>{{ label }} <span class="count">{{ count }}</span></a>
+  {% endfor %}
+</nav>
+
+<form class="filter-bar" method="get" aria-label="Search applications">
+  {% if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
+  <input type="search" name="q" value="{{ query }}" placeholder="Search company, role, location, contact, notes" aria-label="Search">
+  <select name="sort" aria-label="Sort by" onchange="this.form.submit()">
+    {% for key, label in sort_options %}
+    <option value="{{ key }}"{% if key == sort %} selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="secondary">Search</button>
+</form>
+
+{% if applications %}
+<div class="overflow-auto">
+<table class="striped">
+  <thead>
+    <tr>
+      <th scope="col">Role</th>
+      <th scope="col">Status</th>
+      <th scope="col">Applied</th>
+      <th scope="col" class="hide-sm">Location</th>
+      <th scope="col">Follow-up</th>
+      <th scope="col" class="hide-sm">Sent</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for application in applications %}
+    <tr{% if application.is_closed %} class="closed"{% endif %}>
+      <td class="primary-cell">
+        <a href="{{ application.get_absolute_url }}">{{ application.role_title }}</a>
+        <small>{{ application.company.name }}</small>
+      </td>
+      <td>{% include "tracker/includes/status_badge.html" with status=application.status label=application.get_status_display %}</td>
+      <td class="nowrap">{{ application.date_applied|date:"j M Y"|default:"-" }}</td>
+      <td class="hide-sm">{{ application.location|default:"-" }}{% if application.work_mode %} <small class="muted">({{ application.get_work_mode_display }})</small>{% endif %}</td>
+      <td class="nowrap{% if application.follow_up_overdue %} warn{% endif %}">{% if application.is_closed %}-{% else %}{{ application.next_follow_up|date:"j M Y"|default:"-" }}{% endif %}</td>
+      <td class="hide-sm">
+        <span class="doc-tags">
+          {% if application.cv %}<a class="doc-tag" href="{{ application.cv.get_absolute_url }}" title="CV: {{ application.cv.label }}">CV</a>{% endif %}
+          {% if application.cover_letter %}<a class="doc-tag" href="{{ application.cover_letter.get_absolute_url }}" title="Cover letter: {{ application.cover_letter.label }}">Letter</a>{% endif %}
+          {% if not application.cv and not application.cover_letter %}<span class="muted">-</span>{% endif %}
+        </span>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p class="empty">No applications match{% if query %} "{{ query }}"{% endif %}{% if status %} in this status{% endif %}. <a href="{% url 'application-list' %}">Clear filters</a></p>
+{% endif %}
+{% else %}
+<article class="empty">
+  <p><strong>No applications yet.</strong></p>
+  <p>Paste a job posting URL above, or <a href="{% url 'application-create' %}">add your first application</a>.</p>
+</article>
+{% endif %}
+{% endblock %}

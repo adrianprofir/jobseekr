@@ -1,0 +1,16 @@
+<div class="doc-row">
+  <div class="doc-meta">
+    <strong>{{ title }}</strong>
+    {% if document %}
+    <small>{{ document.label }} · {{ document.original_filename }} · {{ document.size|filesizeformat }}</small>
+    {% else %}
+    <small>Not recorded</small>
+    {% endif %}
+  </div>
+  {% if document %}
+  <div class="actions">
+    {% if document.extension == "pdf" %}<a role="button" class="secondary outline small" href="{{ document.get_absolute_url }}" target="_blank" rel="noopener">View</a>{% endif %}
+    <a role="button" class="secondary outline small" href="{{ document.get_absolute_url }}?download=1">Download</a>
+  </div>
+  {% endif %}
+</div>

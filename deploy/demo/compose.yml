@@ -1,0 +1,128 @@
+# A public jobseekr demo (DEMO_MODE) with a private sandbox per visitor, for a reverse
+# proxy or tunnel. See docs/demo.md. Run it from this directory with a .env copied from
+# .env.demo.example:
+#
+#   edge network --> jobseekr-web (alias ${DEMO_EDGE_ALIAS}:8000) --> db (Postgres)
+#                    scheduler (deletes expired sandboxes and sessions) --> db
+#
+# Only jobseekr-web joins the external edge network, under a stack-unique alias. Anything
+# that routes to this demo uses that alias, never a bare name such as web: on a shared edge
+# network other stacks also answer to web. Compose registers a service's own name as an
+# alias on every network it joins, so this service is not called web: that would make this
+# demo answer to web on the edge network too. db and scheduler sit on an internal network
+# with no route out. Compose project and image names differ from the main stack's (project
+# "jobseekr", image jobseekr:latest), so building the demo never retags that image or
+# touches its volumes.
+# 127.0.0.1:${DEMO_SMOKE_PORT} exists for smoke tests from the host only.
+name: showcase-jobseekr
+
+x-app: &app
+  image: showcase-jobseekr-app:latest
+  restart: unless-stopped
+  environment: &app-env
+    DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?set DJANGO_SECRET_KEY in .env}
+    DJANGO_DEBUG: "false"
+    POSTGRES_HOST: db
+    POSTGRES_PORT: "5432"
+    POSTGRES_DB: jobseekr
+    POSTGRES_USER: jobseekr
+    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    # The app refuses to start with DEMO_MODE and a live CAPTURE_MODE, enabled uploads
+    # or EMAIL_HOST. This file never passes EMAIL_HOST on, so the demo cannot send mail.
+    DEMO_MODE: ${DEMO_MODE:-true}
+    CAPTURE_MODE: ${CAPTURE_MODE:-samples}
+    DOCUMENT_UPLOADS_ENABLED: ${DOCUMENT_UPLOADS_ENABLED:-false}
+    CLIENT_IP_HEADER: ${CLIENT_IP_HEADER:-CF-Connecting-IP}
+    MAIN_SITE_URL: ${MAIN_SITE_URL:-}
+    TIME_ZONE: ${TIME_ZONE:-UTC}
+    SANDBOX_LIFETIME_HOURS: ${SANDBOX_LIFETIME_HOURS:-24}
+    SANDBOX_MAX_ACTIVE: ${SANDBOX_MAX_ACTIVE:-100}
+    SANDBOX_RATE_LIMIT: ${SANDBOX_RATE_LIMIT:-3}
+    SANDBOX_RATE_WINDOW: ${SANDBOX_RATE_WINDOW:-3600}
+    DEMO_LOG_RETENTION_DAYS: ${DEMO_LOG_RETENTION_DAYS:-14}
+    SCHEDULER_INTERVAL_SECONDS: ${SCHEDULER_INTERVAL_SECONDS:-300}
+    PRIVATE_MEDIA_ROOT: /data/documents
+  # Uploads are off, but each sandbox's sample PDFs are stored files. The scheduler mounts
+  # the same volume, so deleting a sandbox deletes its files too.
+  volumes:
+    - documents:/data/documents
+
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: jobseekr
+      POSTGRES_USER: jobseekr
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jobseekr -d jobseekr"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  jobseekr-web:
+    <<: *app
+    build:
+      context: ../..
+    environment:
+      <<: *app-env
+      DJANGO_ALLOWED_HOSTS: ${DEMO_HOSTNAME:?set DEMO_HOSTNAME in .env},localhost,127.0.0.1
+      DJANGO_CSRF_TRUSTED_ORIGINS: https://${DEMO_HOSTNAME}
+      # TLS ends at the proxy or tunnel, which forwards plain HTTP with X-Forwarded-Proto.
+      TRUST_X_FORWARDED_PROTO: "true"
+      DJANGO_SECURE_COOKIES: "true"
+      SECURE_SSL_REDIRECT: ${SECURE_SSL_REDIRECT:-true}
+      SECURE_HSTS_SECONDS: ${SECURE_HSTS_SECONDS:-3600}
+    # The image entrypoint migrates before gunicorn starts.
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${DEMO_SMOKE_PORT:-8095}:8000"
+    networks:
+      backend:
+      edge:
+        aliases:
+          - ${DEMO_EDGE_ALIAS:?set DEMO_EDGE_ALIAS in .env}
+    healthcheck:
+      # /healthz checks the database too, and answers whatever ALLOWED_HOSTS lists.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 5
+
+  scheduler:
+    <<: *app
+    # Deletes expired sandboxes and sessions every SCHEDULER_INTERVAL_SECONDS. It writes
+    # a heartbeat file after every pass, which the healthcheck reads.
+    command: ["/app/docker/scheduler.sh"]
+    init: true
+    depends_on:
+      jobseekr-web:
+        condition: service_healthy
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "test -n \"$$(find /tmp/scheduler-heartbeat -mmin -30 2>/dev/null)\""]
+      interval: 60s
+      timeout: 5s
+      start_period: 90s
+      retries: 3
+
+volumes:
+  pgdata:
+  documents:
+
+networks:
+  # No route out of this network, so db and scheduler cannot reach the internet.
+  backend:
+    internal: true
+  edge:
+    external: true
+    name: ${DEMO_EDGE_NETWORK:-showcase-jobseekr-edge}

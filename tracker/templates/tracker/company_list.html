@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Companies{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Companies</h1>
+  <div class="actions"><a role="button" href="{% url 'application-create' %}">New application</a></div>
+</div>
+{% if companies %}
+<div class="overflow-auto">
+<table class="striped">
+  <thead><tr><th scope="col">Company</th><th scope="col">Website</th><th scope="col">Applications</th><th scope="col">Open</th></tr></thead>
+  <tbody>
+    {% for company in companies %}
+    <tr>
+      <td class="primary-cell"><a href="{{ company.get_absolute_url }}">{{ company.name }}</a></td>
+      <td>{% if company.website %}<a href="{{ company.website }}" target="_blank" rel="noopener noreferrer">{{ company.website|cut:"https://"|cut:"http://" }}</a>{% else %}<span class="muted">-</span>{% endif %}</td>
+      <td>{{ company.application_count }}</td>
+      <td>{{ company.open_count }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<article class="empty"><p>Companies are created automatically when you add an application.</p></article>
+{% endif %}
+{% endblock %}

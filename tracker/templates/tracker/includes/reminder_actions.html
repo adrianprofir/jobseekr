@@ -1,0 +1,16 @@
+{% comment %}Done and snooze buttons for one reminder. Needs `reminder` and `snooze_form`.{% endcomment %}
+<div class="reminder-actions">
+  <form method="post" action="{% url 'follow-up-done' reminder.application.pk %}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <button type="submit" class="small secondary outline" title="Log that you followed up{% if reminder.application.next_follow_up %} and clear the follow-up date{% endif %}">{% if reminder.kind == "quiet" %}Followed up{% else %}Done{% endif %}</button>
+  </form>
+  <form method="post" action="{% url 'follow-up-snooze' reminder.application.pk %}" class="snooze">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <select name="days" aria-label="Snooze {{ reminder.application.role_title }} for">
+      {% for value, label in snooze_form.fields.days.choices %}<option value="{{ value }}"{% if value == snooze_form.fields.days.initial %} selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="small secondary outline">Snooze</button>
+  </form>
+</div>

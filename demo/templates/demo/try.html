@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Try the demo{% endblock %}
+{% block content %}
+<section class="try">
+  <header class="try-intro">
+    <h1>Try jobseekr</h1>
+    <p class="lead">A self-hosted job application tracker: every application, the posting, the exact CV and cover letter you sent, where it stands, and when to follow up.</p>
+    <p>Get a private demo workspace with {{ sample_count }} sample applications, their history, follow-ups and documents, and change anything you like.</p>
+  </header>
+
+  {% if expired %}<p class="notice" role="status">Your demo workspace expired and was deleted. Start a new one below.</p>{% endif %}
+  {% if left %}<p class="notice" role="status">You left the demo, and your workspace was deleted.</p>{% endif %}
+  {% if refused %}<p class="notice notice-warn" role="alert">{{ refused }}</p>{% endif %}
+
+  <form method="post" action="{% url 'demo-try' %}" class="try-start">
+    {% csrf_token %}
+    <button type="submit">Try the demo</button>
+  </form>
+
+  <article class="demo-notice" aria-labelledby="about-demo">
+    <h2 id="about-demo">About this demo</h2>
+    <ul>
+      <li>Everything in it is fictional: the companies, people, postings and documents are made up. Please do not enter real personal data.</li>
+      <li>Your workspace is private to this browser. It is deleted after {{ lifetime_hours }} hours, or as soon as you leave the demo.</li>
+      <li>Link capture only reads the bundled sample postings, document uploads are switched off, and no e-mail is sent.</li>
+      <li>The server's logs record your IP address to protect the demo from abuse, and keep it for {{ log_retention_days }} days.</li>
+    </ul>
+  </article>
+</section>
+{% endblock %}

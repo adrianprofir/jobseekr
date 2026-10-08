@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Weekly summary{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Weekly summary</h1>
+    <p class="subtitle">Week {{ summary.week_number }} · {{ summary.start|date:"j M" }} - {{ summary.end|date:"j M Y" }}{% if summary.is_current %} · this week{% endif %}</p>
+  </div>
+  <nav class="actions week-nav" aria-label="Choose week">
+    <a role="button" class="secondary outline small" href="?week={{ summary.previous_week }}">&larr; Previous week</a>
+    {% if not summary.is_current and summary.next_week != summary.current_week %}<a role="button" class="secondary outline small" href="?week={{ summary.current_week }}">This week</a>{% endif %}
+    {% if summary.next_week %}<a role="button" class="secondary outline small" href="?week={{ summary.next_week }}">Next week &rarr;</a>{% endif %}
+  </nav>
+</div>
+
+<div class="stat-row" role="list">
+  <div class="stat" role="listitem"><span class="stat-value">{{ summary.applied|length }}</span><span class="stat-label">Applied</span></div>
+  <div class="stat" role="listitem"><span class="stat-value">{{ summary.responses|length }}</span><span class="stat-label">Responses</span></div>
+  <div class="stat" role="listitem"><span class="stat-value">{{ summary.interviews|length }}</span><span class="stat-label">Interviews</span></div>
+  <div class="stat{% if summary.follow_ups_due %} stat-warn{% endif %}" role="listitem"><span class="stat-value">{{ summary.follow_ups_due|length }}</span><span class="stat-label">Follow-ups due now</span></div>
+</div>
+
+<div class="summary-grid">
+  <article>
+    <header><strong>Applied</strong></header>
+    {% if summary.applied %}
+    <ul class="plain-list">
+      {% for application in summary.applied %}
+      <li><a href="{{ application.get_absolute_url }}">{{ application.role_title }}</a> <span class="muted">at {{ application.company.name }}</span> <small class="muted nowrap">{{ application.date_applied|date:"D j M" }}</small></li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="muted">No applications sent this week.</p>{% endif %}
+  </article>
+
+  <article>
+    <header><strong>Responses</strong></header>
+    {% if summary.responses %}
+    <ul class="plain-list">
+      {% for response in summary.responses %}
+      <li><a href="{{ response.application.get_absolute_url }}">{{ response.application.role_title }}</a> <span class="muted">at {{ response.application.company.name }}</span>
+        {% for status, label in response.statuses %}{% include "tracker/includes/status_badge.html" %}{% endfor %}</li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="muted">No interview invitations, offers or rejections this week.</p>{% endif %}
+  </article>
+
+  <article>
+    <header><strong>Interviews</strong></header>
+    {% if summary.interviews %}
+    <ul class="plain-list">
+      {% for application in summary.interviews %}
+      <li><a href="{{ application.get_absolute_url }}">{{ application.role_title }}</a> <span class="muted">at {{ application.company.name }}</span></li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="muted">No applications moved to interviewing this week.</p>{% endif %}
+  </article>
+</div>
+
+<h2 class="section-title">Right now <small class="muted">as of {{ summary.today|date:"D j M" }}</small></h2>
+<div class="summary-grid">
+  <article>
+    <header><strong>Follow-ups due</strong></header>
+    {% if summary.follow_ups_due %}
+    <ul class="reminders">{% for reminder in summary.follow_ups_due %}{% include "tracker/includes/reminder_row.html" %}{% endfor %}</ul>
+    {% else %}<p class="muted">Nothing due.</p>{% endif %}
+  </article>
+
+  <article>
+    <header><strong>Coming up in the next 7 days</strong></header>
+    {% if summary.upcoming %}
+    <ul class="plain-list">
+      {% for reminder in summary.upcoming %}
+      <li><a href="{{ reminder.application.get_absolute_url }}">{{ reminder.application.role_title }}</a> <span class="muted">at {{ reminder.application.company.name }}</span> <small class="muted">{{ reminder.reason }}</small></li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="muted">No follow-ups scheduled this coming week.</p>{% endif %}
+  </article>
+
+  <article>
+    <header><strong>Gone quiet</strong></header>
+    {% if summary.gone_quiet %}
+    <ul class="reminders">{% for reminder in summary.gone_quiet %}{% include "tracker/includes/reminder_row.html" %}{% endfor %}</ul>
+    {% else %}<p class="muted">Every open application has recent activity.</p>{% endif %}
+  </article>
+</div>
+
+<p class="muted email-note">
+  {% if email_configured %}The weekly e-mail goes to {{ user.email }}. Send it with <code>manage.py send_weekly_summary</code>, for example from cron.
+  {% else %}To get this summary by e-mail, set <code>EMAIL_HOST</code>, add an e-mail address to your account and schedule <code>manage.py send_weekly_summary</code>.{% endif %}
+</p>
+{% endblock %}

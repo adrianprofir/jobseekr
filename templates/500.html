@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Something went wrong{% endblock %}
+{% block content %}
+<article class="empty">
+  <h1>Something went wrong</h1>
+  <p>The error has been logged. Check <code>docker compose logs web</code> for details.</p>
+  <p><a href="/">Back to applications</a></p>
+</article>
+{% endblock %}

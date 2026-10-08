@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Delete {{ application.role_title }}{% endblock %}
+{% block content %}
+<article>
+  <header><strong>Delete {{ application }}?</strong></header>
+  <p>This removes the application and its history. Any CV or cover letter stays in the document library.</p>
+  <form method="post" class="actions">
+    {% csrf_token %}
+    <button type="submit" class="danger">Delete application</button>
+    <a role="button" class="secondary outline" href="{{ application.get_absolute_url }}">Cancel</a>
+  </form>
+</article>
+{% endblock %}

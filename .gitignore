@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Django
+staticfiles/
+db.sqlite3
+*.log
+
+# Uploaded CVs and cover letters: private, never committed
+private-media/
+media/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+!.env.demo.example
+
+# Backups made by scripts/backup.sh
+backups/
+
+# Editors and OS
+.idea/
+.vscode/
+.DS_Store
+
+# Local agent settings
+.claude/settings.local.json
+
+# Server-local Compose overrides (for example a Tailscale port)
+compose.override.yaml

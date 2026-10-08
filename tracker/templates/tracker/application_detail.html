@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}{{ application.role_title }} at {{ application.company.name }}{% endblock %}
+{% block content %}
+<p><a href="{% url 'application-list' %}">&larr; All applications</a></p>
+<div class="page-head">
+  <div>
+    <h1>{{ application.role_title }}</h1>
+    <p class="subtitle">
+      <a href="{{ application.company.get_absolute_url }}">{{ application.company.name }}</a>
+      {% if application.location or application.work_mode %} · {{ application.location }}{% if application.location and application.work_mode %}, {% endif %}{{ application.get_work_mode_display }}{% endif %}
+      · {% include "tracker/includes/status_badge.html" with status=application.status label=application.get_status_display %}
+    </p>
+  </div>
+  <div class="actions">
+    {% if application.posting_url %}<a role="button" class="secondary outline" href="{{ application.posting_url }}" target="_blank" rel="noopener noreferrer">Open posting ↗</a>{% endif %}
+    <a role="button" href="{% url 'application-edit' application.pk %}">Edit</a>
+  </div>
+</div>
+
+<div class="detail-grid">
+  <div>
+    <article>
+      <header><strong>Details</strong></header>
+      <dl class="facts">
+        <dt>Applied</dt><dd>{{ application.date_applied|date:"j M Y"|default:"Not yet" }}</dd>
+        <dt>Next follow-up</dt>
+        <dd>{% if application.is_closed %}<span class="muted">Closed</span>{% elif application.next_follow_up %}<span{% if application.follow_up_overdue %} class="warn"{% endif %}>{{ application.next_follow_up|date:"j M Y" }}{% if application.follow_up_overdue %} (due){% endif %}</span>{% else %}<span class="muted">None set</span>{% endif %}</dd>
+        {% if application.salary %}<dt>Salary</dt><dd>{{ application.salary }}</dd>{% endif %}
+        {% if application.source %}<dt>Source</dt><dd>{{ application.source }}</dd>{% endif %}
+        {% if application.contact_name or application.contact_email %}
+        <dt>Contact</dt>
+        <dd>{{ application.contact_name }}{% if application.contact_email %}{% if application.contact_name %} · {% endif %}<a href="mailto:{{ application.contact_email }}">{{ application.contact_email }}</a>{% endif %}</dd>
+        {% endif %}
+        {% if application.posting_url %}<dt>Posting</dt><dd><a href="{{ application.posting_url }}" target="_blank" rel="noopener noreferrer">{{ application.posting_url }}</a></dd>{% endif %}
+        <dt>Added</dt><dd>{{ application.created_at|date:"j M Y, H:i" }}</dd>
+      </dl>
+    </article>
+
+    <article>
+      <header><strong>Documents sent</strong></header>
+      {% include "tracker/includes/document_row.html" with title="CV" document=application.cv %}
+      {% include "tracker/includes/document_row.html" with title="Cover letter" document=application.cover_letter %}
+    </article>
+
+    <article>
+      <header><strong>Notes</strong></header>
+      {% if application.notes %}<div class="notes">{{ application.notes }}</div>{% else %}<p class="muted">No notes. Use <a href="{% url 'application-edit' application.pk %}">Edit</a> to add some, or log an update in the history.</p>{% endif %}
+    </article>
+
+    <article>
+      <header><strong>Job ad</strong>{% if application.posting_text and application.posting_text_saved_at %} <small class="muted">copy saved {{ application.posting_text_saved_at|date:"j M Y" }}</small>{% endif %}</header>
+      {% if application.posting_text %}
+      <details class="posting-copy">
+        <summary>Show the saved copy</summary>
+        <div class="notes">{{ application.posting_text }}</div>
+      </details>
+      {% elif can_fetch_posting %}
+      <p class="muted">No copy of the ad is saved. <a href="{% url 'application-edit' application.pk %}?fetch=1">Fetch a copy from the posting</a> so you can still read it after it is taken down.</p>
+      {% else %}
+      <p class="muted">No copy of the ad is saved. Use <a href="{% url 'application-edit' application.pk %}">Edit</a> to paste the ad text.</p>
+      {% endif %}
+    </article>
+
+    <p><a class="danger-link" href="{% url 'application-delete' application.pk %}">Delete this application</a></p>
+  </div>
+
+  <div>
+    <article>
+      <header><strong>Update status</strong></header>
+      <form method="post" action="{% url 'application-status' application.pk %}" class="compact-form">
+        {% csrf_token %}
+        <label for="id_status">Status</label>
+        {{ status_form.status }}
+        <label for="id_note">Note</label>
+        {{ status_form.note }}
+        <button type="submit">Change status</button>
+      </form>
+    </article>
+
+    <article>
+      <header><strong>Log an update</strong></header>
+      <form method="post" action="{% url 'application-note' application.pk %}" class="compact-form">
+        {% csrf_token %}
+        <label for="id_message">Note</label>
+        {{ note_form.message }}
+        {% if not application.is_closed %}
+        <label for="id_next_follow_up">Next follow-up <small class="muted">(optional)</small></label>
+        {{ note_form.next_follow_up }}
+        {% endif %}
+        <button type="submit" class="secondary">Add to history</button>
+      </form>
+    </article>
+
+    <article>
+      <header><strong>History</strong></header>
+      <ol class="timeline">
+        {% for event in events %}
+        <li class="event-{{ event.kind }}">
+          <time datetime="{{ event.created_at|date:'c' }}">{{ event.created_at|date:"j M Y, H:i" }}</time>
+          {% if event.kind == "status" %}
+          <strong>Status:</strong> {% if event.from_status %}{{ event.get_from_status_display }} &rarr; {% endif %}{{ event.get_to_status_display }}
+          {% elif event.kind == "created" %}
+          <strong>Created</strong>
+          {% elif event.kind == "edited" %}
+          <strong>Edited</strong>
+          {% elif event.kind == "follow_up" %}
+          <strong>Follow-up</strong>
+          {% else %}
+          <strong>Note</strong>
+          {% endif %}
+          {% if event.message %}<p class="message">{{ event.message }}</p>{% endif %}
+        </li>
+        {% empty %}
+        <li class="muted">No history yet.</li>
+        {% endfor %}
+      </ol>
+    </article>
+  </div>
+</div>
+{% endblock %}
