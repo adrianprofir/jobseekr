@@ -826,6 +826,92 @@ a.danger-link {
   margin-bottom: 0.5rem;
 }
 
+/* Optional PostHog analytics consent (only when POSTHOG_PROJECT_KEY is set). */
+.site-footer {
+  margin-top: 2rem;
+  padding-bottom: 1rem;
+  text-align: center;
+}
+
+.analytics-prefs-link {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--pico-muted-color);
+  font-size: 0.8rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.analytics-prefs-link:hover,
+.analytics-prefs-link:focus-visible {
+  color: var(--pico-primary);
+}
+
+.analytics-banner {
+  position: fixed;
+  z-index: 1000;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border-top: 1px solid var(--pico-muted-border-color);
+  background: var(--pico-card-background-color);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.analytics-banner.hidden {
+  display: none;
+}
+
+.analytics-banner-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  padding-block: 0.85rem;
+}
+
+.analytics-banner-inner p {
+  flex: 1 1 14rem;
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.analytics-banner-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.5rem;
+}
+
+.analytics-consent-btn {
+  margin: 0;
+  min-width: 6rem;
+}
+
+body.analytics-banner-visible {
+  padding-bottom: 5.5rem;
+}
+
+@media (max-width: 576px) {
+  .analytics-banner-inner {
+    padding-block: 0.75rem;
+  }
+
+  .analytics-banner-actions {
+    width: 100%;
+  }
+
+  .analytics-consent-btn {
+    flex: 1 1 0;
+  }
+
+  body.analytics-banner-visible {
+    padding-bottom: 7.5rem;
+  }
+}
+
 .demo-notice ul {
   margin-bottom: 0;
   padding-left: 1.1rem;

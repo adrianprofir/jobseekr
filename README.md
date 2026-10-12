@@ -5,7 +5,8 @@ Keep every application in one place: the company, the posting link, the exact CV
 Your data stays on your own server.
 
 jobseekr is a small Django and PostgreSQL app that runs with Docker Compose.
-It has no tracking, no third-party services and no public sign-up.
+It has no public sign-up.
+Optional PostHog analytics (EU cloud) can be turned on with `POSTHOG_PROJECT_KEY`; without that key, nothing is loaded and no third-party analytics runs.
 
 ## Features
 
@@ -419,6 +420,9 @@ All settings come from environment variables; see `.env.example` for defaults an
 | `CLIENT_IP_HEADER` | Demo only: the request header holding the visitor's address, such as `CF-Connecting-IP`. Set it only behind a proxy that always sets it. Empty by default, which uses the connection's address. |
 | `DEMO_LOG_RETENTION_DAYS` | Demo only: how long your logs keep visitor addresses, as stated on the Try page (14). |
 | `MAIN_SITE_URL` | A site to link back to from a strip on top of every page. Empty by default (no strip). |
+| `POSTHOG_PROJECT_KEY` | PostHog project API key. When unset or empty, analytics is fully off (the default for self-hosting and local development). |
+| `POSTHOG_HOST` | PostHog ingestion host (default `https://eu.i.posthog.com`). |
+| `ANALYTICS_COOKIE_DOMAIN` | Optional `Domain` attribute for the shared analytics consent cookie. Empty uses a host-only cookie. |
 | `SCHEDULER_INTERVAL_SECONDS` | Compose `scheduler` service only: seconds between housekeeping runs (300). |
 | `EXISTING_DATA_OWNER` | Only read by the upgrade that introduced separate accounts, when more than one account exists: the username that gets the existing data. See [Upgrading](#upgrading-from-a-version-without-separate-accounts). |
 

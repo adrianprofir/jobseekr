@@ -58,5 +58,6 @@
     {% endif %}
     {% block content %}{% endblock %}
   </main>
+  {% if analytics %}{% include "includes/analytics.html" %}{% endif %}
 </body>
 </html>

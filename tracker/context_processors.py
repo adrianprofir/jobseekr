@@ -2,6 +2,7 @@ from urllib.parse import urlsplit
 
 from django.conf import settings
 
+from .analytics import analytics_context
 from .capture.samples import SAMPLES
 from .reminders import due_reminders
 
@@ -28,3 +29,8 @@ def features(request):
         "uploads_enabled": settings.DOCUMENT_UPLOADS_ENABLED,
         "capture_samples": SAMPLES if settings.CAPTURE_MODE == "samples" else [],
     }
+
+
+def analytics(request):
+    """PostHog consent UI and loader when POSTHOG_PROJECT_KEY is configured."""
+    return analytics_context(request)
