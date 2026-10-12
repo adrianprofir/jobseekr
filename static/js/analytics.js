@@ -100,6 +100,27 @@
     }
   }
 
+  function revokeAnalytics() {
+    if (!window.posthog) {
+      return;
+    }
+    if (window.posthog.opt_out_capturing) {
+      window.posthog.opt_out_capturing();
+    }
+    if (window.posthog.stopSessionRecording) {
+      window.posthog.stopSessionRecording();
+    }
+  }
+
+  function reconcileConsent(config) {
+    var consent = readConsent();
+    if (consent === "granted") {
+      grantAnalytics(config);
+    } else if (consent === "denied") {
+      revokeAnalytics();
+    }
+  }
+
   function isPhoneLayout() {
     return window.matchMedia("(max-width: 639px)").matches;
   }
@@ -150,10 +171,11 @@
     var consent = readConsent();
     if (consent === "granted") {
       grantAnalytics(config);
-    } else if (consent !== "denied") {
-      setBannerVisible(true);
-    } else {
+    } else if (consent === "denied") {
+      revokeAnalytics();
       syncBannerLayout();
+    } else {
+      setBannerVisible(true);
     }
 
     if (prefs) {
@@ -161,6 +183,15 @@
         setBannerVisible(true);
       });
     }
+
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible") {
+        reconcileConsent(config);
+      }
+    });
+    window.addEventListener("focus", function () {
+      reconcileConsent(config);
+    });
 
     window.addEventListener("resize", syncBannerLayout);
     if (typeof ResizeObserver !== "undefined") {
@@ -170,7 +201,6 @@
     banner.querySelectorAll("[data-analytics-action]").forEach(function (button) {
       button.addEventListener("click", function () {
         var action = button.getAttribute("data-analytics-action");
-        var previous = readConsent();
         if (action === "accept") {
           writeConsent("granted", config);
           setBannerVisible(false);
@@ -178,9 +208,7 @@
         } else if (action === "decline") {
           writeConsent("denied", config);
           setBannerVisible(false);
-          if (previous === "granted" && window.posthog && window.posthog.opt_out_capturing) {
-            window.posthog.opt_out_capturing();
-          }
+          revokeAnalytics();
         }
       });
     });
