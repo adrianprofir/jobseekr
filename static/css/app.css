@@ -873,7 +873,7 @@ a.danger-link {
 }
 
 .analytics-banner-inner p {
-  flex: 1 1 14rem;
+  flex: 1 1 auto;
   margin: 0;
   font-size: 0.875rem;
   line-height: 1.4;
@@ -890,18 +890,18 @@ a.danger-link {
   min-width: 6rem;
 }
 
-body.analytics-banner-visible {
-  padding-bottom: 5.5rem;
-}
-
-@media (max-width: 576px) {
-  .analytics-banner-inner {
-    padding-block: 0.75rem;
+@media (max-width: 639px) {
+  .analytics-banner {
+    position: static;
+    z-index: auto;
+    box-shadow: none;
+    border-top: 1px solid var(--pico-muted-border-color);
+    border-bottom: 1px solid var(--pico-muted-border-color);
+    margin-bottom: 1rem;
   }
 
-  .analytics-banner-inner p {
-    flex: 0 1 auto;
-    flex-basis: auto;
+  .analytics-banner-inner {
+    padding-block: 0.75rem;
   }
 
   .analytics-banner-actions {
@@ -910,10 +910,6 @@ body.analytics-banner-visible {
 
   .analytics-consent-btn {
     flex: 1 1 0;
-  }
-
-  body.analytics-banner-visible {
-    padding-bottom: 6rem;
   }
 }
 

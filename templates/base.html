@@ -50,6 +50,7 @@
     </nav>
   </header>
   {% endif %}
+  {% if analytics %}{% include "includes/analytics_banner.html" %}{% endif %}
   <main class="container">
     {% if messages %}
     <div class="messages" role="status">

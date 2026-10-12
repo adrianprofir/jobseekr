@@ -2,14 +2,5 @@
 <footer class="site-footer">
   <button type="button" class="analytics-prefs-link" id="analytics-prefs">Analytics preferences</button>
 </footer>
-<div id="analytics-banner" class="analytics-banner hidden" role="dialog" aria-modal="false" aria-labelledby="analytics-banner-title">
-  <div class="analytics-banner-inner container">
-    <p id="analytics-banner-title">This site uses analytics, including session recordings with typed text hidden, to understand how visitors use it.</p>
-    <div class="analytics-banner-actions">
-      <button type="button" class="analytics-consent-btn" data-analytics-action="accept">Accept</button>
-      <button type="button" class="analytics-consent-btn" data-analytics-action="decline">Decline</button>
-    </div>
-  </div>
-</div>
 {{ analytics|json_script:"analytics-config" }}
 <script src="{% static 'js/analytics.js' %}" defer></script>

@@ -100,13 +100,31 @@
     }
   }
 
+  function isPhoneLayout() {
+    return window.matchMedia("(max-width: 639px)").matches;
+  }
+
+  function syncBannerLayout() {
+    var banner = document.getElementById("analytics-banner");
+    if (!banner) {
+      return;
+    }
+    var visible = !banner.classList.contains("hidden");
+    document.body.classList.toggle("analytics-banner-visible", visible);
+    if (!visible || isPhoneLayout()) {
+      document.body.style.paddingBottom = "";
+      return;
+    }
+    document.body.style.paddingBottom = banner.offsetHeight + "px";
+  }
+
   function setBannerVisible(visible) {
     var banner = document.getElementById("analytics-banner");
     if (!banner) {
       return;
     }
     banner.classList.toggle("hidden", !visible);
-    document.body.classList.toggle("analytics-banner-visible", visible);
+    syncBannerLayout();
   }
 
   function onReady(fn) {
@@ -134,12 +152,19 @@
       grantAnalytics(config);
     } else if (consent !== "denied") {
       setBannerVisible(true);
+    } else {
+      syncBannerLayout();
     }
 
     if (prefs) {
       prefs.addEventListener("click", function () {
         setBannerVisible(true);
       });
+    }
+
+    window.addEventListener("resize", syncBannerLayout);
+    if (typeof ResizeObserver !== "undefined") {
+      new ResizeObserver(syncBannerLayout).observe(banner);
     }
 
     banner.querySelectorAll("[data-analytics-action]").forEach(function (button) {
