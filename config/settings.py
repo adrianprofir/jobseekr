@@ -89,6 +89,7 @@ TEMPLATES = [
                 "tracker.context_processors.main_site",
                 "tracker.context_processors.features",
                 "demo.context_processors.demo",
+                "tracker.context_processors.analytics",
             ],
         },
     },
@@ -220,6 +221,13 @@ DEMO_LOG_RETENTION_DAYS = int(env("DEMO_LOG_RETENTION_DAYS", "14"))
 # A link back to the site the app is shown on, in a strip on top of every page.
 # Empty (the default) shows no strip.
 MAIN_SITE_URL = env("MAIN_SITE_URL", "").strip()
+
+# Optional PostHog analytics (EU cloud). Off unless POSTHOG_PROJECT_KEY is set.
+POSTHOG_PROJECT_KEY = (env("POSTHOG_PROJECT_KEY") or "").strip()
+POSTHOG_HOST = (env("POSTHOG_HOST") or "https://eu.i.posthog.com").rstrip("/")
+POSTHOG_UI_HOST = "https://eu.posthog.com"
+ANALYTICS_COOKIE_DOMAIN = (env("ANALYTICS_COOKIE_DOMAIN") or "").strip()
+ANALYTICS_APP_NAME = "jobseekr"
 
 if DEMO_MODE:
     if env("EMAIL_HOST"):

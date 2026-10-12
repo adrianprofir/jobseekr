@@ -1,0 +1,6 @@
+{% load static %}
+<footer class="site-footer">
+  <button type="button" class="analytics-prefs-link" id="analytics-prefs">Analytics preferences</button>
+</footer>
+{{ analytics|json_script:"analytics-config" }}
+<script src="{% static 'js/analytics.js' %}" defer></script>
