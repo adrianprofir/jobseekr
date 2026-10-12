@@ -891,6 +891,15 @@ a.danger-link {
 }
 
 @media (max-width: 639px) {
+  body > header.site:has(+ .analytics-banner:not(.hidden)) {
+    margin-bottom: 0;
+  }
+
+  body > header.site + .analytics-banner:not(.hidden) {
+    margin-top: 0;
+    border-top: none;
+  }
+
   .analytics-banner {
     position: static;
     z-index: auto;
