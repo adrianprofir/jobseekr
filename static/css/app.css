@@ -899,6 +899,11 @@ body.analytics-banner-visible {
     padding-block: 0.75rem;
   }
 
+  .analytics-banner-inner p {
+    flex: 0 1 auto;
+    flex-basis: auto;
+  }
+
   .analytics-banner-actions {
     width: 100%;
   }
@@ -908,7 +913,7 @@ body.analytics-banner-visible {
   }
 
   body.analytics-banner-visible {
-    padding-bottom: 7.5rem;
+    padding-bottom: 6rem;
   }
 }
 

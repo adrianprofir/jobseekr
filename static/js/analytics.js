@@ -74,7 +74,12 @@
     })(document, window.posthog || []);
   }
 
+  var posthogInited = false;
+
   function initPostHog(config) {
+    if (posthogInited) {
+      return;
+    }
     loadPostHogStub();
     window.posthog.init(config.project_key, {
       api_host: config.api_host,
@@ -85,6 +90,14 @@
       session_recording: { maskAllInputs: true },
     });
     window.posthog.register({ app: config.app_name });
+    posthogInited = true;
+  }
+
+  function grantAnalytics(config) {
+    initPostHog(config);
+    if (window.posthog && window.posthog.opt_in_capturing) {
+      window.posthog.opt_in_capturing();
+    }
   }
 
   function setBannerVisible(visible) {
@@ -118,7 +131,7 @@
 
     var consent = readConsent();
     if (consent === "granted") {
-      initPostHog(config);
+      grantAnalytics(config);
     } else if (consent !== "denied") {
       setBannerVisible(true);
     }
@@ -136,9 +149,7 @@
         if (action === "accept") {
           writeConsent("granted", config);
           setBannerVisible(false);
-          if (previous !== "granted") {
-            initPostHog(config);
-          }
+          grantAnalytics(config);
         } else if (action === "decline") {
           writeConsent("denied", config);
           setBannerVisible(false);
